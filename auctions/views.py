@@ -4,16 +4,17 @@ from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import render
 from django.urls import reverse
 
-from .models import User, Bid, Listing, Comment
+from .models import User, Bid, Listing, Comment, Category
 
 from django import forms
+
+
 
 class CreateForm(forms.Form):
     title = forms.CharField(label="Title")
     description = forms.CharField(widget=forms.Textarea(attrs={ "style": "resize: none" })) 
     starting_bid = forms.DecimalField(max_digits=6, decimal_places=2)
-    image_url = forms.URLField()
-
+    image_url = forms.URLField(required=False)
 
 def index(request):
     return render(request, "auctions/index.html",
@@ -76,11 +77,29 @@ def register(request):
 
 
 def create(request):
+    if request.method == "POST":
+        form = CreateForm(request.POST)
 
+        if form.is_valid():
+            title = form.cleaned_data["title"]
+            description = form.cleaned_data["description"]
+            starting_bid = form.cleaned_data["starting_bid"]
+            image_url = form.cleaned_data["image_url"]
+            creator = request.user
+            category = request.POST["category"]
+            new_item = Listing(title = title, description = description, starting_bid = starting_bid, image_url = image_url, creator = creator, category = category)
 
-    return render(request, "auctions/create.html", {
-        "form": CreateForm
-    })
+            print(category)
+            new_item.save()
+
+            
+            return HttpResponseRedirect(reverse("listing",args=(title,)))
+
+    else:
+        return render(request, "auctions/create.html", {
+        "form": CreateForm(),
+        "categories": Category.objects.all()
+        })
 
 def listing(request, item):
 

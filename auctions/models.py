@@ -19,6 +19,7 @@ class Listing(models.Model):
     image_url = models.URLField(blank=True, default='')
     creator = models.CharField(max_length=64, default='')
     description = models.CharField(max_length=360, default='')
+    category = models.CharField(max_length=16, default='Unsorted')
     # NONE = 'NA'
     # FASHION = 'FA'
     # TOYS = 'TY'
@@ -55,3 +56,7 @@ class Comment(models.Model):
     def __str__(self):
         return f"{self.item}, Comment By: {self.creator}"
 
+#category
+
+class Category(models.Model):
+    category = models.CharField(max_length=16, default='Unsorted')
