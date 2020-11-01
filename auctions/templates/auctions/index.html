@@ -6,25 +6,26 @@
 
     {% for listing in listings %}
     <li>
-        <a href="{% url 'listing' listing.title %}"><h5>{{ listing.title }}</h5></a>
+        <a href="{% url 'listing' listing.title %}"><h5>{{ listing.title }}</h5></a>    {% if listing.image_url %}
+      
+            <img style="height: 200px;" src="{{ listing.image_url }}" alt="{{ listing.title }}"> 
+        
+         {% endif %}
     </li>
    <ul style="list-style: none;">
     <li>
         Description: {{ listing.description }}
     </li>
     <li>
+        Category: {{ listing.category }}
+    </li>
+    <li>
         Staring Bid: {{ listing.starting_bid }} <b>||</b>
   
         Current Bid: {{ listing.current_bid }}
     </li>
-    <li>
-        Category: {{ listing.category }}
-    </li>
-    {% if listing.image_url %}
-    <li>
-        <img src="{{ listing.image_url }}" alt="{{ listing.title }}"> 
-     </li>
-     {% endif %}
+
+
    </ul>
     {% empty %}
     No Active Listings.

@@ -89,7 +89,7 @@ def create(request):
             category = request.POST["category"]
             new_item = Listing(title = title, description = description, starting_bid = starting_bid, image_url = image_url, creator = creator, category = category)
 
-            print(category)
+          
             new_item.save()
 
             
@@ -107,4 +107,24 @@ def listing(request, item):
     return render(request, "auctions/listing.html", {
         "title": item,
         "listing": Listing.objects.get(title=item)
+    })
+
+def categories(request):
+
+    return render(request, "auctions/categories.html",{
+        "categories": Category.objects.all()
+    } )
+
+def category(request, name):
+
+    return render(request, "auctions/category.html", {
+        "category": name,
+        "results": Listing.objects.filter(category=name).all()
+    })
+
+def watchlist(request, user):
+
+    return render(request, "auctions/watchlist.html", {
+        "user": user,
+        # "watchlist": User.objects.
     })

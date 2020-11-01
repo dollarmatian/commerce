@@ -1,0 +1,21 @@
+{% extends "auctions/layout.html" %}
+
+{% block body %}
+    <h2>Auctions in {{ category }}</h2>
+<ul>
+
+    {% for result in results %}
+    <li>
+        <a href="{% url 'listing' result.title %}"><h5>{{ result.title }}
+        </a>
+            {% if result.image_url %}
+            <img style="height: 200px; " alt="{{ category }}" src="{{ result.image_url }}">
+            {% endif %}    
+        Posted by: {{ result.creator }} Starting Bid: {{ result.starting_bid }} || Current Bid: {{ result.current_bid }}   </h5>
+
+    </li>
+   {% empty %}
+   No Auctions Posted in {{ category }}
+    {% endfor %}
+</ul>
+{% endblock %}
