@@ -16,12 +16,19 @@ class CreateForm(forms.Form):
     starting_bid = forms.DecimalField(max_digits=6, decimal_places=2)
     image_url = forms.URLField(required=False)
 
+class CommentForm(forms.Form):
+    comment = forms.CharField(widget=forms.Textarea(attrs={ "style": "resize: none", "placeholder": "Leave Comment" }),label='')
+
+class BidForm(forms.Form):
+    bid = forms.DecimalField(max_digits=6, decimal_places=2)
+
 def index(request):
     return render(request, "auctions/index.html",
      {
         "listings": Listing.objects.all()
     }
     )
+
 
 
 def login_view(request):
@@ -102,12 +109,60 @@ def create(request):
         })
 
 def listing(request, item):
+    if request.user is None:
+        return render(request, "auctions/listing.html", {
+        "title": item,
+        "listing": Listing.objects.get(title=item),
+        "comments": Comment.objects.filter(item=itemSearch).all()
+    })
+    
+    itemSearch = Listing.objects.get(title=item)
 
+    watchlist = User.objects.get(username=request.user).listings.all()
+    if (itemSearch in watchlist):
+
+        onList = True
+    else:
+
+        onList = False
+
+    if request.method == "POST":
+        form = BidForm(request.POST)
+
+        if form.is_valid():
+            bid = form.cleaned_data["bid"]
+        
+
+            if itemSearch.starting_bid < bid and itemSearch.current_bid < bid:
+                itemSearch.current_bid = bid
+                itemSearch.high_bidder = request.user
+                itemSearch.save()
+
+                # bidder = request.user
+                # new_bid = Bid(item = itemSearch, bid_offer = bid, bid_user = bidder)
+                # new_bid.save()
+                return HttpResponseRedirect(reverse("listing",args=(item,)))
+            else:
+                return render(request, "auctions/listing.html", {
+                    "title": item,
+                    "listing": itemSearch,
+                    "onList": onList,
+                    "form": CommentForm(),
+                    "comments": Comment.objects.filter(item=itemSearch).all(),
+                    "bidForm": BidForm(form)
+
+                })
 
     return render(request, "auctions/listing.html", {
         "title": item,
-        "listing": Listing.objects.get(title=item)
+        "listing": itemSearch,
+        "onList": onList,
+        "form": CommentForm(),
+        "comments": Comment.objects.filter(item=itemSearch).all(),
+        "bidForm": BidForm()
+
     })
+
 
 def categories(request):
 
@@ -122,9 +177,46 @@ def category(request, name):
         "results": Listing.objects.filter(category=name).all()
     })
 
-def watchlist(request, user):
+def watchlist(request):
+    user =  request.user
+    userData = User.objects.get(username=user)
+    print(userData)
+    watchlist = userData.listings.all()
+
 
     return render(request, "auctions/watchlist.html", {
         "user": user,
-        # "watchlist": User.objects.
+        "watchlist": watchlist
     })
+
+def edit_watchlist(request, listing):
+    user =  request.user
+    userData = User.objects.get(username=user)
+    watchlist = userData.listings.all()
+    edit_listing = Listing.objects.get(title=listing)
+
+    if edit_listing not in watchlist:
+        userData.listings.add(edit_listing)
+    else:
+        userData.listings.remove(edit_listing)
+    userData.save()
+    watchlist = userData.listings.all()
+    return HttpResponseRedirect(reverse("watchlist"))
+
+def commentDelete(request, item, comment):
+        delete_comment = Comment(comment)
+        delete_comment.delete()
+        return HttpResponseRedirect(reverse("listing",args=(item,)))
+    
+def commentAdd(request, item):
+    if request.method == "POST":
+        form = CommentForm(request.POST)
+
+        if form.is_valid():
+            comment = form.cleaned_data["comment"]
+            creator = request.user
+            itemSearch = Listing.objects.get(title=item)
+            new_comment = Comment(item = itemSearch, creator = creator, comment = comment)
+
+            new_comment.save()
+            return HttpResponseRedirect(reverse("listing",args=(item,)))

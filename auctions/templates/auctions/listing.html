@@ -3,18 +3,48 @@
 {% block body %}
     <h2>Active Listings</h2>
 <ul style="list-style:none">
+    {% if user.is_authenticated %}
+    <li>
+   
+       
+        <a href="{% url 'edit_watchlist'  title  %}">
+      
+ 
+            <button> 
+            {% if onList == True %}
+
+                Remove from
+                {% else %}
+                Add to
+
+            {% endif %} 
+            Watchlist
+        
+        </button>
+        
+        </a>
+        <form style="margin-top: 10px;" method="POST" action="">
+            {% csrf_token %}
+            {{ bidForm }}
+            <input type="submit" value="Place Bid"> 
+        </form>
+    </li>
+
+    {% endif %} 
 
 <li>
-    Title: {{ listing.title }}
+    <b>
+{{ listing.title }}
+    </b>
 </li>
 <li>
     Description: {{ listing.description }}
 </li>
 <li>
-    Staring Bid: {{ listing.starting_bid }}
+    Starting Bid: {{ listing.starting_bid }}
 </li>
 <li>
-    Current Bid: {{ listing.current_bid }}
+    Current Bid: <b>{{ listing.current_bid }}</b>
 </li>
 <li>
     Category:  {{ listing.category }}
@@ -25,4 +55,22 @@
  </li>
  {% endif %}
 </ul>
+<ul>
+    {% for comment in comments %}
+  <li>
+        {{ comment.comment }} <b>by {{ comment.creator }}</b>
+        {% if user.username == comment.creator %}
+        <a href="{% url 'commentDelete' listing.title comment.id %}""><button>Delete</button></a>
+        {% endif %}
+    </li>
+    {% endfor %}
+</ul>
+
+{% if user.is_authenticated %}
+<form method="POST" action="{% url 'commentAdd' listing.title %}">
+    {% csrf_token %}
+    {{ form }}
+    <input type="submit" value="Comment"> 
+</form>
+{% endif %}
 {% endblock %}

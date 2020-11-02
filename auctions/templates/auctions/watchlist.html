@@ -1,21 +1,21 @@
 {% extends "auctions/layout.html" %}
 
 {% block body %}
-    <h2>Auctions in {{ category }}</h2>
+    <h2>Watchlist for {{ user }}</h2>
 <ul>
 
-    {% for result in results %}
+    {% for listing in watchlist %}
     <li>
-        <a href="{% url 'listing' result.title %}"><h5>{{ result.title }}
+        <a href="{% url 'listing' listing.title %}"><h5>{{ listing.title }}
         </a>
-            {% if result.image_url %}
+            <!-- {% if result.image_url %}
             <img style="height: 200px; " alt="{{ category }}" src="{{ result.image_url }}">
             {% endif %}    
-        Posted by: {{ result.creator }} Starting Bid: {{ result.starting_bid }} || Current Bid: {{ result.current_bid }}   </h5>
+        Posted by: {{ result.creator }} Starting Bid: {{ result.starting_bid }} || Current Bid: {{ result.current_bid }}   </h5> -->
 
     </li>
    {% empty %}
-   No Auctions Posted in {{ category }}
+   No Auctions in Watchlist
     {% endfor %}
 </ul>
 {% endblock %}
