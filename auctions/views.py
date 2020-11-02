@@ -4,7 +4,7 @@ from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import render
 from django.urls import reverse
 
-from .models import User, Bid, Listing, Comment, Category
+from .models import User,  Listing, Comment, Category
 
 from django import forms
 
@@ -20,7 +20,7 @@ class CommentForm(forms.Form):
     comment = forms.CharField(widget=forms.Textarea(attrs={ "style": "resize: none", "placeholder": "Leave Comment" }),label='')
 
 class BidForm(forms.Form):
-    bid = forms.DecimalField(max_digits=6, decimal_places=2)
+    bid = forms.DecimalField(max_digits=6, decimal_places=2, label='')
 
 def index(request):
     return render(request, "auctions/index.html",
@@ -117,8 +117,10 @@ def listing(request, item):
     })
     
     itemSearch = Listing.objects.get(title=item)
+    if User.objects.get(username=request.user).listings:
+        watchlist = User.objects.get(username=request.user).listings.all()
 
-    watchlist = User.objects.get(username=request.user).listings.all()
+
     if (itemSearch in watchlist):
 
         onList = True
@@ -133,7 +135,7 @@ def listing(request, item):
             bid = form.cleaned_data["bid"]
         
 
-            if itemSearch.starting_bid < bid and itemSearch.current_bid < bid:
+            if (itemSearch.starting_bid < bid) and (itemSearch.current_bid < bid):
                 itemSearch.current_bid = bid
                 itemSearch.high_bidder = request.user
                 itemSearch.save()
@@ -149,8 +151,8 @@ def listing(request, item):
                     "onList": onList,
                     "form": CommentForm(),
                     "comments": Comment.objects.filter(item=itemSearch).all(),
-                    "bidForm": BidForm(form)
-
+                    "bidForm": form,
+                    "message": "Enter Valid Bid" 
                 })
 
     return render(request, "auctions/listing.html", {
@@ -220,3 +222,15 @@ def commentAdd(request, item):
 
             new_comment.save()
             return HttpResponseRedirect(reverse("listing",args=(item,)))
+
+
+def closeListing(request, item):
+    itemSearch = Listing.objects.get(title=item)
+
+    if str(itemSearch.creator) == str(request.user.username):
+
+        print(itemSearch.is_active)
+        itemSearch.is_active = 0
+        itemSearch.save()
+    
+    return HttpResponseRedirect(reverse("listing",args=(item,)))

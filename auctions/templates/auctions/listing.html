@@ -1,9 +1,33 @@
 {% extends "auctions/layout.html" %}
 {% block title %}Listing for {{ title }}{% endblock %}
 {% block body %}
-    <h2>Active Listings</h2>
+
+<h2>
+    {% if title %}
+    {{ title }}
+    {% if listing.image_url %}
+    <li>
+        <img src="{{ listing.image_url }}" alt="{{ listing.title }}"> 
+     </li>
+     {% endif %}
+    {% else %}
+    Active Listings
+    {% endif %}
+    </h2>
+
 <ul style="list-style:none">
     {% if user.is_authenticated %}
+
+    {% if listing.is_active %}
+
+    {% if user.username == listing.creator  %}
+           
+    <a href="{% url 'close_listing'  title  %}">
+    <button> 
+        Close Auction
+    </button>
+    </a>
+  {% else %}
     <li>
    
        
@@ -25,18 +49,26 @@
         </a>
         <form style="margin-top: 10px;" method="POST" action="">
             {% csrf_token %}
+            <div>
             {{ bidForm }}
-            <input type="submit" value="Place Bid"> 
+           
+            <input type="submit" value="Place Bid">
+            {% if message %}
+            {{ message }}
+            {% endif %}
+        </div>
         </form>
     </li>
-
+    {% endif %}
+    {% elif listing.high_bidder == user %}
+  
+    <h1 style="color: blue;;">You Have WON This Auction!</h1>
+    
+    {% endif %}
     {% endif %} 
 
-<li>
-    <b>
-{{ listing.title }}
-    </b>
-</li>
+
+
 <li>
     Description: {{ listing.description }}
 </li>
@@ -49,11 +81,7 @@
 <li>
     Category:  {{ listing.category }}
 </li>
-{% if listing.image_url %}
-<li>
-    <img src="{{ listing.image_url }}" alt="{{ listing.title }}"> 
- </li>
- {% endif %}
+
 </ul>
 <ul>
     {% for comment in comments %}
