@@ -5,9 +5,6 @@ from django.db import models
 class User(AbstractUser):
     listings = models.ManyToManyField('Listing', related_name='watchlist_items', blank=True)
 
-
-
-
 class Listing(models.Model):
     title = models.CharField(max_length=120, default='')
     starting_bid = models.DecimalField(max_digits=6, decimal_places=2, default=0)
